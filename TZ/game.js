@@ -33,32 +33,35 @@ function randInt(min, max) {
 function createRooms() {
   let rooms = [];
   let roomCount = randInt(5, 10);
+
   for (let i=0; i<roomCount; i++) {
     let w = randInt(3,8);
     let h = randInt(3,8);
     let x = randInt(1, WIDTH - w - 1);
-    let y = randInt(1, HEIGHT - h -1);
+    let y = randInt(1, HEIGHT - h - 1);
     let failed = false;
     for (const r of rooms) {
       if (x < r.x + r.w && x + w > r.x && y < r.y + r.h && y + h > r.y) {
         failed = true; break;
       }
     }
-
     if (failed) continue;
-    rooms.push({x,y,w,h});
 
-    for (let yy=y; yy<y+h; yy++) {
-      for(let xx=x; xx<x+w; xx++) {
+    rooms.push({x, y, w, h});
+
+    for(let yy = y; yy < y + h; yy++) {
+      for(let xx = x; xx < x + w; xx++) {
         map[yy][xx] = TILE_FLOOR;
       }
     }
   }
+  return rooms;
 }
 
 function createPassages() {
   let vertCount = randInt(3,5);
   let horCount = randInt(3,5);
+
   for(let i=0; i<vertCount; i++) {
     let x = randInt(1, WIDTH-2);
     for(let y=0; y<HEIGHT; y++) {
@@ -70,6 +73,34 @@ function createPassages() {
     let y = randInt(1, HEIGHT-2);
     for(let x=0; x<WIDTH; x++) {
       map[y][x] = TILE_FLOOR;
+    }
+  }
+}
+
+function connectRooms(rooms) {
+  for (let i = 1; i < rooms.length; i++) {
+    let prev= rooms[i - 1];
+    let curr = rooms[i];
+
+    let x1 = Math.floor(prev.x + prev.w / 2);
+    let y1 = Math.floor(prev.y + prev.h / 2);
+    let x2 = Math.floor(curr.x + curr.w / 2);
+    let y2 = Math.floor(curr.y + curr.h / 2);
+
+    if (Math.random() < 0.5) {
+      for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+        map[y1][x] = TILE_FLOOR;
+      }
+      for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+        map[y][x2] = TILE_FLOOR;
+      }
+    } else {
+      for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+        map[y][x1] = TILE_FLOOR;
+      }
+      for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+        map[y2][x] = TILE_FLOOR;
+      }
     }
   }
 }
@@ -276,7 +307,8 @@ window.addEventListener('keydown', e => {
 
 function init() {
   fillMapWalls();
-  createRooms();
+  let rooms = createRooms();
+  connectRooms(rooms);
   createPassages();
   placeItems();
   placePlayer();
